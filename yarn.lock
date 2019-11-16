@@ -1437,24 +1437,10 @@
   dependencies:
     "@svgdotjs/svg.js" "^3.0.10"
 
-"@svgdotjs/svg.filter.js@^3.0.7":
-  version "3.0.7"
-  resolved "https://registry.yarnpkg.com/@svgdotjs/svg.filter.js/-/svg.filter.js-3.0.7.tgz#206a670fd56a75d5e1d6c2899398c3fd11402b23"
-  integrity sha512-OxCDe37EEiHSfR+3y9k7oNAdx7SNEDKoD3nDSAQW9RG1nSeeMh/C0xKY1J61NrqDWa0GoFPtN5nVRxb5ecnBMg==
-  dependencies:
-    "@svgdotjs/svg.js" "^3.0.13"
-
-"@svgdotjs/svg.js@^3.0.10", "@svgdotjs/svg.js@^3.0.13", "@svgdotjs/svg.js@^3.0.15":
-  version "3.0.15"
-  resolved "https://registry.yarnpkg.com/@svgdotjs/svg.js/-/svg.js-3.0.15.tgz#7e3bd6aa822dff74831f665c2dc9c6647ebeb25e"
-  integrity sha512-le1WrKVAESNPpIWH1Enu/Qn+BQOayY14wq/0qxOOl5+SeDalppdPA3hK52W+h+k1YE6TXQ9Hie+ZB3yl5PEzIQ==
-
-"@svgdotjs/svg.panzoom.js@^2.0.3":
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/@svgdotjs/svg.panzoom.js/-/svg.panzoom.js-2.0.3.tgz#08ecaf80fd3d91b8fe9a7c09e5847458e2c960ad"
-  integrity sha512-H9CzCasjnZTEcufnFCBB/Xh/v+wnT++b5q8NLDVYovxwZGo3lno/VWx1qX2QjRbN2NTRDdxQGqHXzGJ7NYjICw==
-  dependencies:
-    "@svgdotjs/svg.js" "^3.0.10"
+"@svgdotjs/svg.js@^3.0.10", "@svgdotjs/svg.js@^3.0.16":
+  version "3.0.16"
+  resolved "https://registry.yarnpkg.com/@svgdotjs/svg.js/-/svg.js-3.0.16.tgz#7044754e45daf62c8e2b115c45ca33ca5b967aff"
+  integrity sha512-yZ4jfP/SeLHEnCi9PIrzienKCrA4vW9+jm5uUV3N5DG2e9zgXLY5FgywK2u8/gMFIeKO0HuqTLFFfWJj+MfMLA==
 
 "@svgdotjs/svg.topath.js@^2.0.3":
   version "2.0.3"

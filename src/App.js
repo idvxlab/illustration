@@ -1,29 +1,38 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { List, Icon, Radio } from 'antd';
+
+// components
+import DragAsset from './components/drag-asset';
+import DropDustbin from './components/drop-dustbin';
+import { Wrapper, Handle, AssetsContainer, Timeline } from './components/styled';
+
 import { SVG } from '@svgdotjs/svg.js';
-import axios from 'axios';
 
-import './App.css';
-
-import svg1 from './assets/1.svg';
-import svg2 from './assets/2.svg';
-import svg3 from './assets/3.svg';
-import svg4 from './assets/4.svg';
-
+import { addAssetToCanvas } from './utils/import';
+import fetchAssets from './utils/fetch-assets';
 
 const menuIcons = ['user', 'robot', 'dollar', 'aliwangwang'];
-// const svgs = [svg1, svg2, svg3, svg4];
 
 function App() {
-  let drawEl = useRef(null);
-  let svgs = useRef(null);
-  let [ratio, setRatio] = useState('1:1');
-  let [layer, setLayer] = useState([]);
+  const canvas = useRef(null);
+  const [draw, setDraw] = useState(null);
+  const [assets, setAssets] = useState([]);
+  const [ratio, setRatio] = useState('1:1');
+  const [layer, setLayer] = useState([]);
+  const [dropEndPosition, setDropEndPosition] = useState({ x: 0, y: 0 });
 
+  // set svg.js instance
+  // fetch assets data
   useEffect(() => {
-    // init canvas size
+    let drawIns = SVG().addTo(canvas.current).size(600, 400);
+    setDraw(drawIns);
+    fetchAssets().then(data => setAssets(data));
+  }, []);
+
+  // init canvas size
+  useEffect(() => {
     const autoSize = () => {
-      let height = drawEl.current.clientHeight;
+      let height = canvas.current.clientHeight;
       let width = height;
       switch (ratio) {
         case '3:2': width = (height / 2) * 3; break;
@@ -31,7 +40,7 @@ function App() {
         case '16:9': width = (height / 9) * 16; break;
         default: width = height;
       }
-      drawEl.current.style.width = width + 'px';
+      canvas.current.style.width = width + 'px';
     }
     autoSize();
     window.addEventListener('resize', autoSize);
@@ -40,33 +49,35 @@ function App() {
     };
   }, [ratio]);
 
-  useEffect(() => {
-    let draw = SVG(svgs.current);
+  // drop svg
+  const drawing = ({ url, name }) => {
+    let { x: baseX, y: baseY } = canvas.current.getBoundingClientRect();
+    let { x, y } = dropEndPosition;
+    addAssetToCanvas(url, draw, x - baseX, y - baseY);
+    // add layer
+    setLayer([...layer, name]);
+  };
 
-    // import svg file
-    async function fetchSvg(filePath) {
-      let { data } = await axios.get(filePath);
-      draw.svg(data);
+  // to get final drag end position
+  const updatePosition = useCallback(({ x, y }) => {
+    if (dropEndPosition.x !== x && dropEndPosition.y !== y) {
+      setDropEndPosition({ x, y });
     }
-    fetchSvg(svg1);
-    fetchSvg(svg2);
-    fetchSvg(svg3);
-    fetchSvg(svg4);
+  }, [dropEndPosition])
 
-    var symbol = SVG().addTo(draw).size(100, 100)
-    symbol.rect(100, 100).attr({ fill: '#f06' })
-  }, []);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <div style={{ display: 'flex', flex: 1, height: 0 }}>
-        <div style={{ flex: 0.2 }} className='assets'>
+    <Wrapper>
+      <div>
+        <AssetsContainer>
           <div className='menu'>
             <Icon type='upload' />
             {menuIcons.map(icon => <Icon type={icon} key={icon} />)}
           </div>
-          <div className='svgs' ref={svgs}></div>
-        </div>
-        <div style={{ flex: 0.8 }} className='handle'>
+          <div className='assets-list'>
+            {assets.map((data) => <DragAsset data={data} key={data.id} drawing={drawing} />)}
+          </div>
+        </AssetsContainer>
+        <Handle>
           <header>
             <div><Icon type='undo' />&emsp;<Icon type='redo' /></div>
             <div>
@@ -81,20 +92,22 @@ function App() {
             <div><Icon type='play-circle' /></div>
           </header>
           <div className='canvas-container'>
-            <div className='canvas' ref={drawEl}></div>
+            <DropDustbin updatePosition={updatePosition}>
+              <div className='canvas' ref={canvas}></div>
+            </DropDustbin>
           </div>
-        </div>
+        </Handle>
       </div>
-      <div style={{ height: '200px', overflowY: 'scroll' }} className='timeline'>
+      <Timeline>
         <List
           bordered
           dataSource={layer}
           style={{ height: '100%' }}
-          renderItem={item => (<List.Item>{item.type}</List.Item>)}
+          renderItem={item => (<List.Item>{item}</List.Item>)}
         />
-      </div>
-    </div>
-  );
-}
+      </Timeline>
+    </Wrapper>
+  )
+};
 
 export default App;
