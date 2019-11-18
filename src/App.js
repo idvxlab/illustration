@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { List, Icon, Radio } from 'antd';
+import { List, Icon, Radio, Drawer } from 'antd';
+
+import { SVG } from '@svgdotjs/svg.js';
 
 // components
 import DragAsset from './components/drag-asset';
 import DropDustbin from './components/drop-dustbin';
 import { Wrapper, Handle, AssetsContainer, Timeline } from './components/styled';
 
-import { SVG } from '@svgdotjs/svg.js';
 
 import { addAssetToCanvas } from './utils/import';
 import fetchAssets from './utils/fetch-assets';
@@ -18,6 +19,7 @@ function App() {
   const [draw, setDraw] = useState(null);
   const [assets, setAssets] = useState([]);
   const [ratio, setRatio] = useState('1:1');
+  const [visible, setVisible] = useState(false);
   const [layer, setLayer] = useState([]);
   const [dropEndPosition, setDropEndPosition] = useState({ x: 0, y: 0 });
 
@@ -53,7 +55,7 @@ function App() {
   const drawing = ({ url, name }) => {
     let { x: baseX, y: baseY } = canvas.current.getBoundingClientRect();
     let { x, y } = dropEndPosition;
-    addAssetToCanvas(url, draw, x - baseX, y - baseY);
+    addAssetToCanvas(url, draw, [x - baseX, y - baseY]);
     // add layer
     setLayer([...layer, name]);
   };
@@ -89,7 +91,7 @@ function App() {
                 <Radio.Button value="16:9">16:9</Radio.Button>
               </Radio.Group>
             </div>
-            <div><Icon type='play-circle' /></div>
+            <div><Icon type='play-circle' onClick={() => setVisible(true)} /></div>
           </header>
           <div className='canvas-container'>
             <DropDustbin updatePosition={updatePosition}>
@@ -106,6 +108,12 @@ function App() {
           renderItem={item => (<List.Item>{item}</List.Item>)}
         />
       </Timeline>
+      <Drawer
+        placement='right'
+        closable={false}
+        onClose={() => setVisible(false)}
+        visible={visible}
+      ></Drawer>
     </Wrapper>
   )
 };
