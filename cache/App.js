@@ -1,15 +1,16 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { List, Icon, Radio, Drawer } from 'antd';
-import { select } from 'd3';
+
+import { SVG } from '@svgdotjs/svg.js';
 
 // components
-import DragAsset from './components/drag-asset';
-import DropDustbin from './components/drop-dustbin';
-import { Wrapper, Handle, AssetsContainer, Timeline } from './components/styled';
+import DragAsset from '../src/components/drag-asset';
+import DropDustbin from '../src/components/drop-dustbin';
+import { Wrapper, Handle, AssetsContainer, Timeline } from '../src/components/styled';
 
 
-import { addAssetToCanvas } from './utils/import';
-import fetchAssets from './utils/fetch-assets';
+import { addAssetToCanvas } from '../src/utils/import';
+import fetchAssets from '../src/utils/fetch-assets';
 
 const menuIcons = ['user', 'robot', 'dollar', 'aliwangwang'];
 
@@ -25,8 +26,8 @@ function App() {
   // set svg.js instance
   // fetch assets data
   useEffect(() => {
-    let svg = select(canvas.current).append('svg');
-    setDraw(svg);
+    let drawIns = SVG().addTo(canvas.current).size(600, 400);
+    setDraw(drawIns);
     fetchAssets().then(data => setAssets(data));
   }, []);
 

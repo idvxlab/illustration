@@ -6,3 +6,10 @@
 div {
   box-sizing: border-box;
 }
+
+/* dragging style */
+rect.mask.selected {
+  stroke: #f03;
+  stroke-width: 3;
+  stroke-dasharray: 10 10;
+}
