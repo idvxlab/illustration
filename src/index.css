@@ -8,8 +8,8 @@ div {
 }
 
 /* dragging style */
-rect.mask.selected {
-  stroke: #f03;
+rect.selected {
+  stroke: #f06;
   stroke-width: 3;
   stroke-dasharray: 10 10;
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { List, Icon, Radio, Drawer } from 'antd';
 import { select } from 'd3';
+import uuid from 'uuid';
 
 // components
 import DragAsset from './components/drag-asset';
@@ -8,10 +9,12 @@ import DropDustbin from './components/drop-dustbin';
 import { Wrapper, Handle, AssetsContainer, Timeline } from './components/styled';
 
 
-import { addAssetToCanvas } from './utils/import';
+import { addAssetToCanvas, draggable, resizable } from './utils';
 import fetchAssets from './utils/fetch-assets';
 
+
 const menuIcons = ['user', 'robot', 'dollar', 'aliwangwang'];
+const ATTR_ID = 'data-id';
 
 function App() {
   const canvas = useRef(null);
@@ -20,6 +23,7 @@ function App() {
   const [ratio, setRatio] = useState('1:1');
   const [visible, setVisible] = useState(false);
   const [layer, setLayer] = useState([]);
+  const [current, setCurrent] = useState("");
   const [dropEndPosition, setDropEndPosition] = useState({ x: 0, y: 0 });
 
   // set svg.js instance
@@ -50,13 +54,31 @@ function App() {
     };
   }, [ratio]);
 
+  useEffect(() => {
+    if (!draw || !current) return;
+    draw.selectAll('g').each(function () {
+      let g = select(this)
+      let id = g.attr(ATTR_ID);
+      g.select('rect[data-role=mask]').classed('selected', id === current);
+      g.call(draggable(id === current));
+      // g.call(resizable(id === current));
+    })
+
+  }, [current, draw])
+
   // drop svg
-  const drawing = ({ url, name }) => {
+  const drawing = async ({ url, name }) => {
     let { x: baseX, y: baseY } = canvas.current.getBoundingClientRect();
     let { x, y } = dropEndPosition;
-    addAssetToCanvas(url, draw, [x - baseX, y - baseY]);
+    let g = await addAssetToCanvas(url, draw, [x - baseX, y - baseY]);
+    let id = uuid();
+    g.attr(ATTR_ID, id);
+    g.on('click', function () {
+      let id = select(this).attr(ATTR_ID);
+      setCurrent(id);
+    })
     // add layer
-    setLayer([...layer, name]);
+    setLayer([...layer, { name, id }]);
   };
 
   // to get final drag end position
@@ -64,7 +86,20 @@ function App() {
     if (dropEndPosition.x !== x && dropEndPosition.y !== y) {
       setDropEndPosition({ x, y });
     }
-  }, [dropEndPosition])
+  }, [dropEndPosition]);
+
+  const onDelete = (e, id) => {
+    e.preventDefault();
+    let l = layer.filter(i => i.id !== id);
+    setLayer(l);
+    draw.selectAll('g').each(function () {
+      let g = select(this)
+      let gid = g.attr(ATTR_ID);
+      if (gid === id) {
+        g.remove();
+      }
+    })
+  };
 
   return (
     <Wrapper>
@@ -83,6 +118,7 @@ function App() {
             <div><Icon type='undo' />&emsp;<Icon type='redo' /></div>
             <div>
               画布设置 &emsp;
+              {/* TODO change ratio need to modify the element position of canvas */}
               <Radio.Group value={ratio} buttonStyle="solid" size='small' onChange={(e) => setRatio(e.target.value)}>
                 <Radio.Button value="1:1">1:1</Radio.Button>
                 <Radio.Button value="3:2">3:2</Radio.Button>
@@ -104,7 +140,14 @@ function App() {
           bordered
           dataSource={layer}
           style={{ height: '100%' }}
-          renderItem={item => (<List.Item>{item}</List.Item>)}
+          renderItem={item => (
+            <List.Item
+              style={{ cursor: 'pointer', color: current === item.id ? '#f06' : '' }}
+              onClick={() => setCurrent(item.id)}
+            >
+              &emsp;{item.name + '---' + item.id}
+              <Icon style={{ float: 'right' }} type='delete' theme='filled' onClick={(e) => onDelete(e, item.id)} />
+            </List.Item>)}
         />
       </Timeline>
       <Drawer
