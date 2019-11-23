@@ -59,9 +59,8 @@ function App() {
     draw.selectAll('g').each(function () {
       let g = select(this)
       let id = g.attr(ATTR_ID);
-      g.select('rect[data-role=mask]').classed('selected', id === current);
       g.call(draggable(id === current));
-      // g.call(resizable(id === current));
+      g.call(resizable(id === current));
     })
 
   }, [current, draw])

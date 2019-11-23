@@ -6,6 +6,7 @@ import netflix from '../assets/netflix.svg';
 import notification from '../assets/notification.svg';
 import cards from '../assets/playing_cards.svg';
 import happyNews from '../assets/happy_news.svg';
+import heart from '../assets/heart.svg';
 
 const data = [
   { id: 1, url: books, name: 'books' },
@@ -15,7 +16,8 @@ const data = [
   { id: 5, url: netflix, name: 'netflix' },
   { id: 6, url: notification, name: 'notification' },
   { id: 7, url: cards, name: 'cards' },
-  { id: 8, url: happyNews, name: 'happy_news' }
+  { id: 8, url: happyNews, name: 'happy_news' },
+  { id: 9, url: heart, name: 'heart' }
 ]
 
 const fetchAssets = () => Promise.resolve(data);

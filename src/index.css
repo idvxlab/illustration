@@ -8,8 +8,30 @@ div {
 }
 
 /* dragging style */
-rect.selected {
+rect[data-role=handler-mask].selected {
+  stroke: #f06;
+  stroke-width: 1;
+  stroke-dasharray: 10 10;
+  cursor: move;
+}
+
+circle.selected {
   stroke: #f06;
   stroke-width: 3;
-  stroke-dasharray: 10 10;
+}
+
+circle[data-role=handler-tl].selected {
+  cursor: nw-resize;
+}
+
+circle[data-role=handler-tr].selected {
+  cursor: ne-resize;
+}
+
+circle[data-role=handler-bl].selected {
+  cursor: sw-resize;
+}
+
+circle[data-role=handler-br].selected {
+  cursor: se-resize;
 }
