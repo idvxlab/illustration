@@ -8,14 +8,18 @@ div {
 }
 
 /* dragging style */
-rect[data-role=handler-mask].selected {
+svg.canvas rect[data-role=handler-mask].selected {
   stroke: #f06;
-  stroke-width: 1;
+  stroke-width: 3;
   stroke-dasharray: 10 10;
   cursor: move;
 }
 
-circle.selected {
+svg.timeline circle[data-id].selected {
+  fill: #f06;
+}
+
+/* circle.selected {
   stroke: #f06;
   stroke-width: 3;
 }
@@ -34,4 +38,4 @@ circle[data-role=handler-bl].selected {
 
 circle[data-role=handler-br].selected {
   cursor: se-resize;
-}
+} */

@@ -1,36 +1,40 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { List, Icon, Radio, Drawer } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
+import { Collapse, Icon, Radio, Drawer } from 'antd';
 import { select } from 'd3';
 import uuid from 'uuid';
 
 // components
 import DragAsset from './components/drag-asset';
 import DropDustbin from './components/drop-dustbin';
-import { Wrapper, Handle, AssetsContainer, Timeline } from './components/styled';
+import Timeline from './components/timeline';
+import { Wrapper, Handle, AssetsContainer, TimelineWrapper } from './components/styled';
 
 
-import { addAssetToCanvas, draggable, resizable } from './utils';
+import { addAssetToCanvas, draggable, resizable, Animation } from './utils';
 import fetchAssets from './utils/fetch-assets';
 
-
+const { Panel } = Collapse;
 const menuIcons = ['user', 'robot', 'dollar', 'aliwangwang'];
 const ATTR_ID = 'data-id';
 
 function App() {
-  const canvas = useRef(null);
-  const [draw, setDraw] = useState(null);
+  const canvas = useRef(null); // svg container
+  const [animation, setAnimation] = useState(null);
   const [assets, setAssets] = useState([]);
   const [ratio, setRatio] = useState('1:1');
   const [visible, setVisible] = useState(false);
   const [layer, setLayer] = useState([]);
-  const [current, setCurrent] = useState("");
-  const [dropEndPosition, setDropEndPosition] = useState({ x: 0, y: 0 });
+  const [current, setCurrent] = useState(""); // need to react apply to interface
 
-  // set svg.js instance
+  // no need to setSate
+  let dropEndPosition = { x: 0, y: 0 };
+
   // fetch assets data
   useEffect(() => {
-    let svg = select(canvas.current).append('svg');
-    setDraw(svg);
+    let svg = select(canvas.current)
+      .append('svg')
+      .classed('canvas', true);
+    setAnimation(new Animation(svg));
     fetchAssets().then(data => setAssets(data));
   }, []);
 
@@ -55,51 +59,34 @@ function App() {
   }, [ratio]);
 
   useEffect(() => {
-    if (!draw || !current) return;
-    draw.selectAll('g').each(function () {
-      let g = select(this)
-      let id = g.attr(ATTR_ID);
-      g.call(draggable(id === current));
-      g.call(resizable(id === current));
-    })
-
-  }, [current, draw])
+    if (!animation) return;
+    animation.changeCurrLayer(current);
+  }, [current, animation])
 
   // drop svg
   const drawing = async ({ url, name }) => {
     let { x: baseX, y: baseY } = canvas.current.getBoundingClientRect();
     let { x, y } = dropEndPosition;
-    let g = await addAssetToCanvas(url, draw, [x - baseX, y - baseY]);
-    let id = uuid();
-    g.attr(ATTR_ID, id);
-    g.on('click', function () {
-      let id = select(this).attr(ATTR_ID);
-      setCurrent(id);
-    })
-    // add layer
+    let id = await animation.addLayer(url, [x - baseX, y - baseY], setCurrent);
+    setCurrent(id);
     setLayer([...layer, { name, id }]);
   };
 
   // to get final drag end position
-  const updatePosition = useCallback(({ x, y }) => {
+  const updatePosition = ({ x, y }) => {
     if (dropEndPosition.x !== x && dropEndPosition.y !== y) {
-      setDropEndPosition({ x, y });
+      dropEndPosition = { x, y };
     }
-  }, [dropEndPosition]);
+  }
 
   const onDelete = (e, id) => {
     e.preventDefault();
     let l = layer.filter(i => i.id !== id);
     setLayer(l);
-    draw.selectAll('g').each(function () {
-      let g = select(this)
-      let gid = g.attr(ATTR_ID);
-      if (gid === id) {
-        g.remove();
-      }
-    })
+    animation.removeLayer(id)
   };
 
+  const DeleteIcon = (id) => <Icon type='delete' onClick={(e) => onDelete(e, id)} />
   return (
     <Wrapper>
       <div>
@@ -125,7 +112,8 @@ function App() {
                 <Radio.Button value="16:9">16:9</Radio.Button>
               </Radio.Group>
             </div>
-            <div><Icon type='play-circle' onClick={() => setVisible(true)} /></div>
+            {/* <div><Icon type='play-circle' onClick={() => setVisible(true)} /></div> */}
+            <div><Icon type='play-circle' onClick={() => animation.play()} /></div>
           </header>
           <div className='canvas-container'>
             <DropDustbin updatePosition={updatePosition}>
@@ -134,21 +122,15 @@ function App() {
           </div>
         </Handle>
       </div>
-      <Timeline>
-        <List
-          bordered
-          dataSource={layer}
-          style={{ height: '100%' }}
-          renderItem={item => (
-            <List.Item
-              style={{ cursor: 'pointer', color: current === item.id ? '#f06' : '' }}
-              onClick={() => setCurrent(item.id)}
-            >
-              &emsp;{item.name + '---' + item.id}
-              <Icon style={{ float: 'right' }} type='delete' theme='filled' onClick={(e) => onDelete(e, item.id)} />
-            </List.Item>)}
-        />
-      </Timeline>
+      <TimelineWrapper>
+        <Collapse accordion activeKey={current} onChange={key => setCurrent(key)}>
+          {layer.map(item => (
+            <Panel header={item.name + '---' + item.id} key={item.id} extra={DeleteIcon(item.id)}>
+              <Timeline animation={animation}></Timeline>
+            </Panel>
+          ))}
+        </Collapse>,
+      </TimelineWrapper>
       <Drawer
         placement='right'
         closable={false}

@@ -35,7 +35,7 @@ export const AssetsContainer = styled.div`
 
 `;
 
-export const Timeline = styled.div`
+export const TimelineWrapper = styled.div`
   height: 200px;
   overflow-y: scroll
 `;

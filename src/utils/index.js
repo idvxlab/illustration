@@ -1,9 +1,14 @@
-import addAssetToCanvas from './import';
-import draggable from './draggable';
-import resizable from './resizable';
+import addAssetToCanvas from './canvas/import';
+import draggable from './canvas/draggable';
+import resizable from './canvas/resizable';
+import { initTimeline } from './timeline/creator';
+
+import Animation from './animate';
 
 export {
   addAssetToCanvas,
   draggable,
-  resizable
+  resizable,
+  initTimeline,
+  Animation
 }

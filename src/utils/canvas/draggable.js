@@ -1,7 +1,7 @@
 import { select, drag, event } from 'd3';
 import { updatePosition } from './import';
 
-const draggable = (canDrag) => {
+const draggable = (canDrag, updateCurrKeyframe) => {
   if (!canDrag) {
     return drag().on("start", null).on("drag", null)
   }
@@ -17,6 +17,7 @@ const draggable = (canDrag) => {
   }
   function dragged(d) {
     select(this).call(updatePosition, [event.x - diff.x, event.y - diff.y])
+    updateCurrKeyframe && updateCurrKeyframe()
   }
 
   return drag()
