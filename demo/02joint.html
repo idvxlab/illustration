@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="../node_modules/d3/dist/d3.js"></script>
+  <script src="./parseSvg.js"></script>
+
+</head>
+
+<body>
+  <svg id="canvas1" width='400' height='500'></svg>
+  <svg id="canvas2" width='400' height='500'></svg>
+  <script>
+    function findChildById(id) {
+      let child = [...this.childNodes];
+      return child.find(i => i.nodeName !== '#text' && d3.select(i).attr('id') === id)
+    }
+
+    function isEmpty(selection) {
+      return !selection._groups[0][0]
+    }
+
+
+    // console.log(parseSvg('translate(6,5)'))
+
+    function rotate(sample, deg1, deg2, deg3) {
+
+      let anchor = sample.select(function () {
+        return findChildById.call(this, '定位点') // todo 
+      });
+      let cx = anchor.attr('cx');
+      let cy = anchor.attr('cy');
+
+      let anchor2 = sample.select(function () {
+        return findChildById.call(this, '锚点') // todo 
+      });
+      let cx2 = anchor2.attr('cx');
+      let cy2 = anchor2.attr('cy');
+
+      sample
+        .transition()
+        .duration(1000)
+        .attrTween("transform", tween);
+
+      function tween(d, i, a) {
+        return d3.interpolateString(`rotate(0, ${cx}, ${cy})`, `rotate(${deg1}, ${cx}, ${cy})`);
+      }
+
+      let {
+        translateX,
+        translateY
+      } = parseSvg(sample.select('#小').attr('transform'));
+      // console.log(translateX, translateY)
+
+      sample.select('#小')
+        .transition()
+        .duration(1000)
+        .attrTween("transform", () => d3.interpolateString(
+          `translate(${translateX}, ${translateY}) rotate(0, ${cx2 - translateX}, ${cy2 - translateY})`,
+          `translate(${translateX}, ${translateY}) rotate(${deg2}, ${cx2 - translateX}, ${cy2 - translateY})`))
+
+      let anchor3 = sample.select('#小').select(function () {
+        return findChildById.call(this, '锚点') // todo 
+      });
+      let cx3 = anchor3.attr('cx');
+      let cy3 = anchor3.attr('cy');
+
+      let {
+        translateX: translateX2,
+        translateY: translateY2
+      } = parseSvg(sample.select('#手').attr('transform'));
+
+      sample.select('#手')
+        .transition()
+        .duration(1000)
+        .attrTween("transform", () => d3.interpolateString(
+          `translate(${translateX2}, ${translateY2}) rotate(0, ${cx3 - translateX2}, ${cy3 - translateY2})`,
+          `translate(${translateX2}, ${translateY2}) rotate(${deg3}, ${cx3 - translateX2}, ${cy3 - translateY2})`))
+    }
+
+    function draw(data, canvas) {
+      // append svg and select target group
+      let svg = d3.select(data.documentElement).node();
+      let sample = d3.select(canvas)
+        .attr('viewBox', '-100,-100, 300, 300')
+        .html(svg.innerHTML)
+        .select('#target')
+      joint(sample)
+      return Promise.resolve(sample);
+    };
+
+    function joint(group) {
+      let anchor = group.select(function () {
+        return findChildById.call(this, '锚点')
+      })
+      let child = group.select('g');
+
+      if (!isEmpty(anchor) && child) {
+        // 和上一节点的定位点
+        let position = child.select(function () {
+          return findChildById.call(this, '定位点')
+        })
+        // console.log(isEmpty(anchor))
+        let x = anchor.attr('cx');
+        let y = anchor.attr('cy');
+
+        let x1 = position.attr('cx');
+        let y1 = position.attr('cy');
+
+        child.attr('transform', `translate(${x - x1}, ${y - y1})`);
+        joint(child)
+      }
+    }
+
+    d3.xml('./assets/part1.svg').then(data => {
+      draw(data, '#canvas1').then((sample) => {
+        rotate(sample, -185, -30, 10)
+
+      });
+    });
+    d3.xml('./assets/part2.svg').then(data => {
+      draw(data, '#canvas2').then((sample) => {
+        rotate(sample, -90, -90, 20)
+      });
+    })
+  </script>
+</body>
+
+</html>

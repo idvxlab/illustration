@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <script src="../node_modules/d3/dist/d3.js"></script>
+</head>
+
+<body>
+  <svg id="canvas" width='800' height='500'></svg>
+  <script>
+    d3.xml('./assets/文件测试2.svg').then(data => {
+      let svg = d3.select(data.documentElement).node();
+      let sample = d3.select('#canvas')
+        .attr('viewBox', '-100,-100, 300, 300')
+        .html(svg.innerHTML)
+        .select('#target')
+      // console.log(sample);
+      let {
+        width,
+        height
+      } = sample.node().getBBox();
+
+      let anchor = d3.select('#canvas').select('#原始点A');
+      let cx = anchor.attr('cx');
+      let cy = anchor.attr('cy');
+
+      let anchor2 = sample.select('#大臂点B');
+      let cx2 = anchor2.attr('cx');
+      let cy2 = anchor2.attr('cy');
+
+      sample.append('rect')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', width)
+        .attr('height', height)
+        .attr('fill', 'transparent')
+        .attr('stroke', 'red')
+
+      let {
+        width: w,
+        height: h
+      } = sample.select('#小臂').node().getBBox();
+
+      sample.select('#小臂').append('rect')
+        .attr('x', 0)
+        .attr('y', 0)
+        .attr('width', w)
+        .attr('height', h)
+        .attr('fill', 'transparent')
+        .attr('stroke', 'blue')
+
+      sample
+        .transition()
+        .duration(1000)
+        .attrTween("transform", tween);
+
+      function tween(d, i, a) {
+        return d3.interpolateString(`rotate(0, ${cx}, ${cy})`, `rotate(-45, ${cx}, ${cy})`);
+      }
+
+      sample.select('#小臂')
+        // .attr('transform', `translate(47.386435, 0.128403) rotate(30, ${cx2 - 47.386435}, ${cy2 - 0.128403})`)
+        .transition()
+        .duration(1000)
+        // .attrTween("transform", () => d3.interpolateString('rotate(0)', 'rotate(45)'))
+        .attrTween("transform", () => d3.interpolateString(
+          `translate(47.386435, 0.128403) rotate(0, ${cx2 - 47.386435}, ${cy2 - 0.128403})`,
+          `translate(47.386435, 0.128403) rotate(45, ${cx2 - 47.386435}, ${cy2 - 0.128403})`));
+    })
+  </script>
+</body>
+
+</html>

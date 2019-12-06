@@ -3,7 +3,8 @@ import { useDrop } from 'react-dnd'
 import ItemTypes from './item-type'
 
 const DropDustbin = ({ children, updatePosition }) => {
-  const [{ canDrop, isOver }, drop] = useDrop({
+  // const [{ canDrop, isOver }, drop] = useDrop({
+  const [, drop] = useDrop({
     accept: ItemTypes.BOX,
     drop: () => ({ name: 'Dustbin' }),
     hover: (item, monitor) => {
@@ -15,7 +16,7 @@ const DropDustbin = ({ children, updatePosition }) => {
       canDrop: monitor.canDrop(),
     }),
   })
-  const isActive = canDrop && isOver
+  // const isActive = canDrop && isOver
   return (
     <div ref={drop}>
       {children}

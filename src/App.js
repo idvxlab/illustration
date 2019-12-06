@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Collapse, Icon, Radio, Drawer } from 'antd';
 import { select } from 'd3';
-import uuid from 'uuid';
 
 // components
 import DragAsset from './components/drag-asset';
@@ -10,12 +9,11 @@ import Timeline from './components/timeline';
 import { Wrapper, Handle, AssetsContainer, TimelineWrapper } from './components/styled';
 
 
-import { addAssetToCanvas, draggable, resizable, Animation } from './utils';
+import { Animation } from './utils';
 import fetchAssets from './utils/fetch-assets';
 
 const { Panel } = Collapse;
 const menuIcons = ['user', 'robot', 'dollar', 'aliwangwang'];
-const ATTR_ID = 'data-id';
 
 function App() {
   const canvas = useRef(null); // svg container
