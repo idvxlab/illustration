@@ -1,14 +1,10 @@
-import addAssetToCanvas from './canvas/import';
-import draggable from './canvas/draggable';
-import resizable from './canvas/resizable';
-import { initTimeline } from './timeline/creator';
+import appendSvgAsGroup from './import';
+import canZoom from './zoom';
+import getTreeData from './get-tree-data';
+import selected, { getRotateAnchor } from './selected';
+import draggable from './draggable';
+import selectByClick from './select-by-click';
+import createTimeline from './create-timeline';
 
-import Animation from './animate';
-
-export {
-  addAssetToCanvas,
-  draggable,
-  resizable,
-  initTimeline,
-  Animation
-}
+export * from './const';
+export { appendSvgAsGroup, canZoom, getTreeData, selected, draggable, selectByClick, createTimeline, getRotateAnchor };

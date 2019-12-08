@@ -6,36 +6,3 @@
 div {
   box-sizing: border-box;
 }
-
-/* dragging style */
-svg.canvas rect[data-role=handler-mask].selected {
-  stroke: #f06;
-  stroke-width: 3;
-  stroke-dasharray: 10 10;
-  cursor: move;
-}
-
-svg.timeline circle[data-id].selected {
-  fill: #f06;
-}
-
-/* circle.selected {
-  stroke: #f06;
-  stroke-width: 3;
-}
-
-circle[data-role=handler-tl].selected {
-  cursor: nw-resize;
-}
-
-circle[data-role=handler-tr].selected {
-  cursor: ne-resize;
-}
-
-circle[data-role=handler-bl].selected {
-  cursor: sw-resize;
-}
-
-circle[data-role=handler-br].selected {
-  cursor: se-resize;
-} */
