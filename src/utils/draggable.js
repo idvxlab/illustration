@@ -1,6 +1,6 @@
 import * as d3 from 'd3';
 import { ROTATE_ANCHOR } from './'
-import { parseSvg } from 'd3-interpolate/src/transform/parse';
+import parseSvg from './';
 
 
 export default function draggable(targetEl) {

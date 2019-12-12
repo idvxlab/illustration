@@ -2,10 +2,22 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Layout, Tree, Input, Button, Icon } from 'antd';
 import * as d3 from 'd3';
 
-import { appendSvgAsGroup, getTreeData, selected, createTimeline, getRotateAnchor } from "./utils";
+import {
+  appendSvgAsGroup,
+  getTreeData,
+  selected,
+  createTimeline,
+  getAnchor,
+  canZoom,
+  ROTATE_ANCHOR,
+  interactionSelect,
+  ROOT_ID
+} from "./utils";
 
 import figure from './assets/figure.svg';
 import flowerpot from './assets/flowerpot.svg';
+
+import SwitchWithLabel from './components/switch-with-label';
 
 import './app.less';
 
@@ -40,8 +52,9 @@ let nodes = (children) => children.map(node => (
 const App = () => {
   let canvas = useRef(null);
   let timeline = useRef(null);
+  const [isEditTree, setIsEditTree] = useState(false);
   const [treeData, setTreeData] = useState([]);
-  const [curSelectKeys, setCurSelectKeys] = useState([]);
+  const [activeKey, setActiveKey] = useState("");
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [rotateDeg, setRotateDeg] = useState("");
   const [keyframes, setKeyframes] = useState([]); // id, name, value
@@ -54,34 +67,38 @@ const App = () => {
       let svg = wrapper.append('svg')
         .attr('width', width)
         .attr('height', height)
-        .attr('viewBox', `${-width * 0.2}, ${-height * 0.2}, ${width * 1.5}, ${height * 1.5}`)
-      await appendSvgAsGroup(figure, svg, { x: width / 3, y: height / 2 })
-      await appendSvgAsGroup(flowerpot, svg, { x: width * 2 / 3, y: height / 2 });
-      let treeData = [getTreeData(svg.node())];
+        .style('background-color', '#d6dfef')
+      let root = svg.append('g').attr('id', ROOT_ID)
+      await appendSvgAsGroup(figure, root, { x: width / 3, y: height / 2 })
+      await appendSvgAsGroup(flowerpot, root, { x: width * 2 / 3, y: height / 2 });
+      let treeData = [getTreeData(root.node())];
       setTreeData(treeData);
+      canZoom(svg, root);
+      interactionSelect(root, setActiveKey);
     }
     init();
     createTimeline(timeline.current);
   }, []);
 
-  const onSelect = selectedKeys => {
-    let keys = selectedKeys.filter(id => id !== treeData[0].key);
-    setCurSelectKeys(keys);
-    if (keys.length > 0) {
-      let keyframe = keyframes.find(kf => kf.id === keys[0]);
-      setRotateDeg(keyframe ? keyframe.value : "");
-    }
-  }
-  const onExpand = expandedKeys => setExpandedKeys(expandedKeys);
-
-  useEffect(() => {
-    selected(canvas.current, curSelectKeys);
-  }, [curSelectKeys])
-
   useEffect(() => {
     let expandedKeys = findExpandKeys(treeData, 3);
     setExpandedKeys(expandedKeys);
-  }, [treeData])
+  }, [treeData]);
+
+  useEffect(() => {
+    selected(canvas.current, activeKey);
+    if (activeKey) {
+      let keyframe = keyframes.find(kf => kf.id === activeKey);
+      setRotateDeg(keyframe ? keyframe.value : "");
+    }
+  }, [activeKey, keyframes]);
+
+  const onSelect = selectedKeys => {
+    let keys = selectedKeys.filter(id => id !== ROOT_ID);
+    let key = keys.length > 0 ? keys[0] : '';
+    setActiveKey(key);
+  }
+  const onExpand = expandedKeys => setExpandedKeys(expandedKeys);
 
   const onValueChange = e => {
     const { value } = e.target;
@@ -96,7 +113,6 @@ const App = () => {
     let node = svg.select('#' + id);
     let name = [node.attr('data-name')];
     let parent = node.node().parentNode;
-    // console.log('parent: ', parent);
     if (parent) {
       name.unshift(d3.select(parent).attr('data-name'))
     }
@@ -104,7 +120,7 @@ const App = () => {
   };
 
   const onAddKeyframe = () => {
-    let id = curSelectKeys[0];
+    let id = activeKey;
     let keyframe = keyframes.find(kf => kf.id === id);
     if (!keyframe) {
       keyframe = { id, name: getName(id), value: rotateDeg };
@@ -122,7 +138,7 @@ const App = () => {
       let { id, value: deg } = keyframes[i];
       let node = svg.select('#' + id);
       // let parent = node.node().parentNode;
-      let { x, y } = getRotateAnchor(node);
+      let { x, y } = getAnchor(node, ROTATE_ANCHOR);
       let s = node.attr('transform');
       if (!s) s = "";
       function tween() {
@@ -133,27 +149,39 @@ const App = () => {
         .duration(1000)
         .attrTween("transform", tween);
     }
-
   }, [keyframes])
 
   return (
     <Layout>
       <Layout>
         <Sider style={siderStyle} width={siderWidth}>
-          <Tree autoExpandParent={false} onSelect={onSelect} expandedKeys={expandedKeys} onExpand={onExpand}>
-            {nodes(treeData)}
-          </Tree>
+          {isEditTree ?
+            (<DirectoryTree multiple expandedKeys={expandedKeys} onExpand={onExpand}>
+              {nodes(treeData)}
+            </DirectoryTree>)
+            : (<Tree autoExpandParent={false} onSelect={onSelect} expandedKeys={expandedKeys} onExpand={onExpand}>
+              {nodes(treeData)}
+            </Tree>)
+          }
         </Sider>
         <Layout style={{ marginLeft: siderWidth, width: '75%' }}>
           <div ref={canvas} style={{ height: '75vh', backgroundColor: '#fff' }}></div>
         </Layout>
         <div className='config'>
-          <div className="item">
-            rotate: <Input style={{ width: 100 }} value={rotateDeg} onChange={onValueChange} />
+          <div className='item'>
+            <SwitchWithLabel checked={isEditTree} onChange={checked => setIsEditTree(checked)} />
           </div>
-          <Button type="primary"
-            disabled={curSelectKeys.length === 0 || !rotateDeg}
-            onClick={onAddKeyframe}>Add Keyframe</Button>
+          {isEditTree ?
+            (<></>) :
+            (<>
+              <div className="item">
+                rotate: <Input style={{ width: 100 }} value={rotateDeg} onChange={onValueChange} />
+              </div>
+              <Button type="primary"
+                disabled={!activeKey || !rotateDeg}
+                onClick={onAddKeyframe}>Add Keyframe</Button>
+            </>)
+          }
         </div>
       </Layout>
       <Footer className='footer'>
@@ -175,21 +203,21 @@ export default App;
 
 
 // function selectByClick() {
-//   console.log(curSelectKeys)
+//   console.log(activeKey)
   // let { path } = d3.event;
   // let selectedKey;
   // for (let i = 0; i < path.length; i++) {
   //   let node = path[i];
   //   if (node.tagName === 'svg') break;
   //   let id = d3.select(node).attr('id');
-  //   if (curSelectKeys.length > 0 && curSelectKeys.indexOf(id) !== -1) break;
+  //   if (activeKey.length > 0 && activeKey.indexOf(id) !== -1) break;
   //   selectedKey = id;
   // }
   // console.log('path', selectedKey)
 // };
 
 // const s = useCallback((svg) => {
-//   console.log(curSelectKeys)
+//   console.log(activeKey)
   // svg.on('click', function () {
   //   let { path } = d3.event;
   //   let id;
@@ -200,6 +228,6 @@ export default App;
   //     id = d3.select(node).attr('id');
   //   }
   //   // console.log(id, path)
-  //   setCurSelectKeys([id])
+  //   setActiveKey([id])
   // })
-// }, [curSelectKeys]);
+// }, [activeKey]);
