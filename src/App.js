@@ -69,8 +69,8 @@ const App = () => {
         .attr('height', height)
         .style('background-color', '#d6dfef')
       let root = svg.append('g').attr('id', ROOT_ID)
-      await appendSvgAsGroup(figure, root, { x: width / 3, y: height / 2 })
       await appendSvgAsGroup(flowerpot, root, { x: width * 2 / 3, y: height / 2 });
+      await appendSvgAsGroup(figure, root, { x: width / 3, y: height / 2 })
       let treeData = [getTreeData(root.node())];
       setTreeData(treeData);
       canZoom(svg, root);
@@ -159,7 +159,7 @@ const App = () => {
             (<DirectoryTree multiple expandedKeys={expandedKeys} onExpand={onExpand}>
               {nodes(treeData)}
             </DirectoryTree>)
-            : (<Tree autoExpandParent={false} onSelect={onSelect} expandedKeys={expandedKeys} onExpand={onExpand}>
+            : (<Tree autoExpandParent={false} onSelect={onSelect} selectedKeys={[activeKey]} expandedKeys={expandedKeys} onExpand={onExpand}>
               {nodes(treeData)}
             </Tree>)
           }
