@@ -19,7 +19,7 @@ import flowerpot from './assets/flowerpot.svg';
 
 import SwitchWithLabel from './components/switch-with-label';
 
-import './app.less';
+import './style/app.less';
 
 const { Sider, Footer } = Layout;
 const { TreeNode, DirectoryTree } = Tree;

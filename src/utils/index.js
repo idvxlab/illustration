@@ -6,6 +6,7 @@ import createTimeline from './create-timeline';
 import isEmpty from './is-empty';
 import parseSvg, { getMatrix } from './parse-svg';
 import interactionSelect from './interaction-select';
+import dragPath from './drag-path';
 
 export * from './const';
 export {
@@ -18,5 +19,6 @@ export {
   isEmpty,
   parseSvg,
   getMatrix,
-  interactionSelect
+  interactionSelect,
+  dragPath
 };
