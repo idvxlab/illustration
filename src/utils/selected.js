@@ -7,7 +7,7 @@ const color = {
   position: d3.schemePaired[4],
   scale: d3.schemeCategory10[4],
 }
-let reg = /^x(\d.*)y(\d.*)$/;
+
 
 const transform_origin = { x: 0, y: 0 };
 
@@ -21,7 +21,10 @@ const position = {
   bottom_left: 'bottom-left',
   bottom_right: 'bottom-right',
 }
+const reg = /^x(-?\d.*)y(-?\d.*)$/;
 
+// transform_origin need return tx and ty
+// group and element is different
 export const getAnchor = (el, type) => {
   let rotate = el.attr(type);
   if (!rotate) return transform_origin;
@@ -94,57 +97,57 @@ export default function selected(svgDom, id) {
     .call(dragAnchor(leaf, ROTATE_ANCHOR))
 
   wrapper.append('circle')
-    .attr('cx', width / 2)
-    .attr('cy', height)
+    .attr('cx', x + width / 2)
+    .attr('cy', y + height)
     .attr('r', 5)
     .attr('fill', color.scale)
     .call(dragScale(leaf, wrapper, position.bottom_center))
 
   wrapper.append('circle')
-    .attr('cx', width)
-    .attr('cy', height / 2)
+    .attr('cx', x + width)
+    .attr('cy', y + height / 2)
     .attr('r', 5)
     .attr('fill', color.scale)
     .call(dragScale(leaf, wrapper, position.right_center))
 
   wrapper.append('circle')
-    .attr('cx', width / 2)
-    .attr('cy', 0)
+    .attr('cx', x + width / 2)
+    .attr('cy', y)
     .attr('r', 5)
     .attr('fill', color.scale)
     .call(dragScale(leaf, wrapper, position.top_center))
 
   wrapper.append('circle')
-    .attr('cx', 0)
-    .attr('cy', height / 2)
+    .attr('cx', x)
+    .attr('cy', y + height / 2)
     .attr('r', 5)
     .attr('fill', color.scale)
     .call(dragScale(leaf, wrapper, position.left_center))
 
   wrapper.append('circle')
-    .attr('cx', 0)
-    .attr('cy', 0)
+    .attr('cx', x)
+    .attr('cy', y)
     .attr('r', 5)
     .attr('fill', color.scale)
     .call(dragScale(leaf, wrapper, position.top_left))
 
   wrapper.append('circle')
-    .attr('cx', width)
-    .attr('cy', 0)
+    .attr('cx', x + width)
+    .attr('cy', y)
     .attr('r', 5)
     .attr('fill', color.scale)
     .call(dragScale(leaf, wrapper, position.top_right))
 
   wrapper.append('circle')
-    .attr('cx', 0)
-    .attr('cy', height)
+    .attr('cx', x)
+    .attr('cy', y + height)
     .attr('r', 5)
     .attr('fill', color.scale)
     .call(dragScale(leaf, wrapper, position.bottom_left))
 
   wrapper.append('circle')
-    .attr('cx', width)
-    .attr('cy', height)
+    .attr('cx', x + width)
+    .attr('cy', y + height)
     .attr('r', 5)
     .attr('fill', color.scale)
     .call(dragScale(leaf, wrapper, position.bottom_right))
@@ -178,42 +181,45 @@ function dragMove(target) {
     diff.y = y - ty;
     start.x = tx;
     start.y = ty;
-    dragLine = d3.select(this).append('line')
+    // TODO this.parentNode ?
+    dragLine = d3.select(this.parentNode).append('line');
   }
   function dragged() {
     let transform = d3.select(this).attr('transform');
-    let { a, b, c, d, e: tx, f: ty } = getMatrix(transform);
+    let { a, b, c, d } = getMatrix(transform);
     let { x, y } = d3.event;
     let { x: ax, y: ay } = getAnchor(target, ROTATE_ANCHOR);
+    if (isNaN(ax) || isNaN(ay)) return;
+    ax = ax * 1;
+    ay = ay * 1;
     d3.select(this).attr('transform', `matrix(${a} ${b} ${c} ${d} ${x - diff.x} ${y - diff.y})`);
     target.attr('transform', `matrix(${a} ${b} ${c} ${d} ${x - diff.x} ${y - diff.y})`);
     if (dragLine) {
-      let x0 = a > 0 ? -(tx - start.x - ax) : (tx - start.x - ax);
-      let y0 = d > 0 ? -(ty - start.y - ay) : (ty - start.y - ay);
       dragLine
-        .attr('x1', x0).attr('y1', y0)
-        .attr('x2', ax).attr('y2', ay)
+        .attr('x1', start.x + ax).attr('y1', start.y + ay)
+        .attr('x2', x - diff.x + ax).attr('y2', y - diff.y + ay)
         .attr('class', 'move-path')
     }
   }
   function dragEnded() {
     let { x: ax, y: ay } = getAnchor(target, ROTATE_ANCHOR);
-    let transform = d3.select(this).attr('transform');
-    let { a, d, e: tx, f: ty } = getMatrix(transform);
-    if (dragLine) dragLine.remove();
-    let x0 = a > 0 ? (tx - start.x - ax) : -(tx - start.x - ax);
-    let y0 = d > 0 ? (ty - start.y - ay) : -(ty - start.y - ay);
-    let x = ax, y = ay;
-    let cpx1 = (x - x0) / 3, cpy1 = (y - y0) / 3;
-    let cpx2 = (x - x0) * 2 / 3, cpy2 = (y - y0) * 2 / 3;
-    let path = d3.path();
-    path.moveTo(-x0, -y0);
-    path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, x, y);
-    d3.select(this)
-      .append('path')
-      .attr('d', path)
-      .attr('data-role', 'move-path')
-      .attr('class', 'move-path');
+    // let transform = d3.select(this).attr('transform');
+    // let { a, d, e: tx, f: ty } = getMatrix(transform);
+    let { x: ex, y: ey } = d3.event;
+    // if (dragLine) dragLine.remove();
+    // let x0 = start.x + ax;
+    // let y0 = start.y + ay;
+    // let x = ex - diff.x + ax, y = ey - diff.y + ay;
+    // let cpx1 = x0 + Math.abs(x - x0) / 3, cpy1 = y0 + Math.abs(y - y0) / 3;
+    // let cpx2 = x0 + Math.abs(x - x0) * 2 / 3, cpy2 = y0 + Math.abs(y - y0) * 2 / 3;
+    // let path = d3.path();
+    // path.moveTo(x0, y0);
+    // path.bezierCurveTo(cpx1, cpy1, cpx2, cpy2, x, y);
+    // d3.select(this.parentNode)
+    //   .append('path')
+    //   .attr('d', path)
+    //   .attr('data-role', 'move-path')
+    //   .attr('class', 'move-path');
     // let points = [[-x0, -y0], [cpx1, cpy1], [cpx2, cpy2], [x, y]];
     // let lines = [[points[0], points[1]], [points[2], points[3]]];
     // const draw = () => {
