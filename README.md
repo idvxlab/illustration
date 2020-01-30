@@ -1,2 +1,1 @@
-# illustration
-This repository is for building a dynamic illustration project  
+# 本分支专门做一些功能点的demo展示
