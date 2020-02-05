@@ -7,6 +7,8 @@ import DragSvg from './pages/drag-svg';
 import Zoom from './pages/zoom';
 import SvgTreeStructure from './pages/svg-tree-structure';
 import AutoJoint from './pages/auto-joint';
+import Hitu from './pages/hitu';
+import HandlerWithHitu from './pages/handler';
 
 
 const Routes = [
@@ -15,6 +17,8 @@ const Routes = [
   { path: '/zoom', name: '3 d3.zoom 缩放', page: Zoom },
   { path: '/svg-tree-structure', name: '4 解析 svg 结构', page: SvgTreeStructure },
   { path: '/auto-joint', name: '5 自动拼接', page: AutoJoint },
+  { path: '/hitu', name: '6 hitu 组件', page: Hitu },
+  { path: '/handler-with-hitu', name: '7 结合hitu组件进行拖拽', page: HandlerWithHitu },
 ]
 
 const { Content, Sider } = Layout;
