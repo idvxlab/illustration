@@ -6,39 +6,32 @@ import { HandlerWrapper, ParamForm } from '../components';
 import { Info } from '@ant-design/hitu/es/interface';
 import { FormComponentProps } from 'antd/es/form';
 import numeral from 'numeral';
-import { Button } from 'antd';
+import { Button, Slider } from 'antd';
 
-const defaultShapes = {
-  x: 0,
-  y: 0,
+const defaultInfo = {
+  x: 200,
+  y: 250,
   rotate: 0,
-  scaleX: 1,
-  scaleY: 1,
+  scaleX: .2,
+  scaleY: .2,
   originX: 0.5,
   originY: 0.5,
   opacity: 1
 };
 
 export default () => {
-  const formRef = createRef<FormComponentProps>();
+  // const formRef = createRef<FormComponentProps>();
   const hituRef = useRef<HiTuRefObject>(null);
-  const info = useRef<Required<Info>>();
+  const info = useRef<Required<Info>>(defaultInfo);
+  const [rotate, setRotate] = useState<number>(0);
   const [shapes, setShapes] = useState<HiTuProps['shapes']>([{
     type: 'shape',
     source: Common_Primary_BarChart02,
     name: 'chart',
-    scaleX: .2,
-    scaleY: .2,
-    x: 200,
-    y: 250
+    ...defaultInfo
   }]);
 
   const setFrameInfo = (i: Required<Info>) => {
-    // setTimeout(() => {
-    // if (formRef.current) {
-    //   formRef.current.form.setFieldsValue(info);
-    // }
-    // }, 100)
     setShapes([{
       type: 'shape',
       source: Common_Primary_BarChart02,
@@ -52,6 +45,15 @@ export default () => {
     if (info.current) {
       if (type === 'horizontal') setFrameInfo({ ...info.current, scaleX: -info.current.scaleX })
       if (type === 'vertical') setFrameInfo({ ...info.current, scaleY: -info.current.scaleY })
+    }
+  }
+
+  const handleRotate = (r: number | [number, number]) => {
+    if (typeof r === 'number') {
+      setRotate(r);
+      if (info.current) {
+        setFrameInfo({ ...info.current, rotate: r })
+      }
     }
   }
 
@@ -70,7 +72,6 @@ export default () => {
             width: shapeWidth = 0,
             height: shapeHeight = 0,
           } = shape.source as any;
-          info.current = frameInfo;
           return (
             <HandlerWrapper
               key={element.key + ''}
@@ -90,9 +91,10 @@ export default () => {
           <p>y:  &emsp;{numeral(info.current.y).format('0.00')}</p>
           <p>originX:  &emsp;{numeral(info.current.originX).format('0.00')}</p>
           <p>originY:  &emsp;{numeral(info.current.originY).format('0.00')}</p>
-          <p>rotate:  &emsp;{info.current.rotate}</p>
-          <p>scaleX:  &emsp;{info.current.scaleX}</p>
-          <p>scaleY:  &emsp;{info.current.scaleY}</p>
+          {/* <p>rotate:  &emsp;{info.current.rotate}</p> */}
+          <div>rotate: <Slider min={-180} max={180} value={rotate} onChange={handleRotate} /></div>
+          <p>scaleX:  &emsp;{numeral(info.current.scaleX).format('0.00')}</p>
+          <p>scaleY:  &emsp;{numeral(info.current.scaleY).format('0.00')}</p>
         </div>
         : null}
       {/* <ParamForm wrappedComponentRef={formRef} /> */}

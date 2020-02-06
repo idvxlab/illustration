@@ -6,7 +6,7 @@ interface Props {
   translateX: number
   translateY: number
   onDragging: (x: number, y: number) => void
-  cursor?: 'grab' | 'move' | 'rotate'
+  cursor?: 'grab' | 'move' | 'rotate' | 'nwse-resize' | 'ns-resize' | 'ew-resize' | 'nesw-resize'
 }
 
 function makeDraggable(comp: React.Component<Props>) {
